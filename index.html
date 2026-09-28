@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ҚОЖА: МІНЕЗ АРПАЛЫСЫ</title>
+  <style>
+    :root {
+      --bg-color: #f3e8ff;
+      --card-bg: #ffffff;
+      --primary: #8b5cf6;
+      --primary-dark: #7c3aed;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --success: #10b981;
+      --text: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #c084fc 0%, #6366f1 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      background: #f8fafc;
+      border-radius: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 92vh;
+      max-height: 820px;
+      position: relative;
+    }
+
+    /* Top Bar Header */
+    .header {
+      background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
+      padding: 14px 18px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .game-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 4px;
+      border-radius: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: white;
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: white;
+      color: var(--primary-dark);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: #ffffff;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .stat-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+
+    .progress-container {
+      flex: 1;
+      margin: 0 10px;
+      height: 14px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #cbd5e1;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      transition: width 0.3s ease;
+    }
+
+    /* Trait Display Box */
+    .trait-alert {
+      height: 48px;
+      margin: 8px 16px 0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+
+    .trait-alert.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .trait-alert.positive {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1.5px solid #a7f3d0;
+    }
+
+    .trait-alert.negative {
+      background-color: #ffe4e6;
+      color: #9f1239;
+      border: 1.5px solid #fecdd3;
+    }
+
+    /* Game Play Area */
+    .game-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      position: relative;
+    }
+
+    /* Mode 1: Match 3 Grid */
+    #grid-board {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-gap: 6px;
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 1;
+      background: #e2e8f0;
+      padding: 8px;
+      border-radius: 20px;
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .cell {
+      background: #ffffff;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.8rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #cbd5e1;
+      transition: transform 0.15s, background-color 0.2s;
+    }
+
+    .cell:active {
+      transform: scale(0.92);
+    }
+
+    .cell.selected {
+      border: 3px solid var(--primary);
+      background: #f3e8ff;
+      animation: pulse 0.8s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
+    }
+
+    /* Mode 2: Bowl Game */
+    #bowl-board {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bowl-container {
+      width: 280px;
+      height: 280px;
+      border-bottom-left-radius: 140px;
+      border-bottom-right-radius: 140px;
+      border: 6px solid #8b5cf6;
+      border-top: none;
+      background: rgba(255, 255, 255, 0.6);
+      position: relative;
+      margin-top: 20px;
+      box-shadow: inset 0 10px 20px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .floating-card {
+      position: absolute;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      animation: float 4s ease-in-out infinite alternate;
+    }
+
+    .floating-card.pos {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #34d399;
+    }
+
+    .floating-card.neg {
+      background: #ffe4e6;
+      color: #9f1239;
+      border: 2px solid #fb7185;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(-3deg); }
+      100% { transform: translateY(-25px) rotate(3deg); }
+    }
+
+    /* Overlay / Modal */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      color: white;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overlay-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #facc15;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .collected-list {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 15px 0;
+      max-height: 180px;
+      overflow-y: auto;
+      width: 100%;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .collected-item {
+      display: inline-block;
+      background: #10b981;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin: 3px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .restart-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Combo Float Animation */
+    .combo-text {
+      position: absolute;
+      color: #f59e0b;
+      font-weight: 900;
+      font-size: 1.8rem;
+      pointer-events: none;
+      animation: popup 0.8s forwards;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      z-index: 50;
+    }
+
+    @keyframes popup {
+      0% { opacity: 0; transform: scale(0.5) translateY(0); }
+      50% { opacity: 1; transform: scale(1.2) translateY(-20px); }
+      100% { opacity: 0; transform: scale(1) translateY(-40px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="game-title">ҚОЖА: МІНЕЗ АРПАЛЫСЫ</div>
+      <div class="mode-switch">
+        <button class="mode-btn active" id="btn-mode1" onclick="switchGameMode(1)">1. МӘТЧ-3 ТОРЫ</button>
+        <button class="mode-btn" id="btn-mode2" onclick="switchGameMode(2)">2. ҚАСИЕТ ЫДЫСЫ</button>
+      </div>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+      <div class="stat-box">⭐ <span id="score-val">0</span></div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <div class="stat-box">❤️ <span id="lives-val">3</span></div>
+    </div>
+
+    <!-- Trait Popup Message -->
+    <div class="trait-alert" id="trait-alert"></div>
+
+    <!-- Game Body -->
+    <div class="game-body">
+      <!-- Mode 1: Grid -->
+      <div id="grid-board"></div>
+
+      <!-- Mode 2: Bowl -->
+      <div id="bowl-board">
+        <div style="font-weight:700; color:#64748b; margin-top:10px;">Тек жақсы қасиеттерді басып жинаңыз!</div>
+        <div class="bowl-container" id="bowl-container"></div>
+      </div>
+    </div>
+
+    <!-- Victory / Game Over Screen -->
+    <div class="overlay" id="end-overlay">
+      <div class="overlay-title" id="end-title">ҚОЖАНЫҢ ЖАҚСЫ ҚАСИЕТТЕРІ ЖЕҢДІ! 🎉</div>
+      <p style="font-size: 1.1rem; margin-bottom: 8px;">Соңғы ұпай: <strong id="final-score" style="color:#facc15;">0</strong></p>
+      
+      <div style="font-size: 0.9rem; opacity: 0.9;">Жиналған жақсы қасиеттер:</div>
+      <div class="collected-list" id="collected-list"></div>
+
+      <button class="restart-btn" onclick="resetGame()">ҚАЙТА БАСТАУ 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // --- DATA DEFINITIONS ---
+    const POSITIVE_TRAITS = [
+      "Адалдық", "Мейірімділік", "Жауапкершілік", "Сабырлылық",
+      "Достық", "Эмпатия", "Креативтілік", "Өзін-өзі дамыту"
+    ];
+
+    const NEGATIVE_TRAITS = [
+      "Ашуланшақтық", "Тентектік", "Асығыстық", "Қырсықтық",
+      "Жауапсыздық", "Өзімшілдік", "Өтірік", "Немқұрайлылық"
+    ];
+
+    const PIECES = ["🌸", "🍃"]; // 🌸 = positive, 🍃 = negative
+
+    // --- GAME STATE ---
+    let currentMode = 1;
+    let score = 0;
+    let lives = 3;
+    let targetScore = 100;
+    let collectedPositives = new Set();
+    
+    // Grid mode state
+    const GRID_SIZE = 6;
+    let board = [];
+    let selectedCell = null;
+    let isProcessing = false;
+
+    // Bowl mode state
+    let bowlInterval = null;
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+      initGame();
+    };
+
+    function initGame() {
+      score = 0;
+      lives = 3;
+      collectedPositives.clear();
+      updateUI();
+
+      if (currentMode === 1) {
+        initGridBoard();
+      } else {
+        initBowlMode();
+      }
+    }
+
+    function updateUI() {
+      document.getElementById("score-val").innerText = score;
+      document.getElementById("lives-val").innerText = lives;
+      
+      let pct = Math.min((score / targetScore) * 100, 100);
+      document.getElementById("progress-bar").style.width = pct + "%";
+
+      if (score >= targetScore) {
+        showEndGame(true);
+      } else if (lives <= 0) {
+        showEndGame(false);
+      }
+    }
+
+    function switchGameMode(mode) {
+      currentMode = mode;
+      document.getElementById("btn-mode1").classList.toggle("active", mode === 1);
+      document.getElementById("btn-mode2").classList.toggle("active", mode === 2);
+      
+      document.getElementById("grid-board").style.display = mode === 1 ? "grid" : "none";
+      document.getElementById("bowl-board").style.display = mode === 2 ? "flex" : "none";
+
+      clearInterval(bowlInterval);
+      initGame();
+    }
+
+    function showTraitMessage(text, isPositive) {
+      const alertBox = document.getElementById("trait-alert");
+      alertBox.innerText = (isPositive ? "✨ " : "⚠️ ") + text;
+      alertBox.className = "trait-alert show " + (isPositive ? "positive" : "negative");
+      
+      setTimeout(() => {
+        alertBox.classList.remove("show");
+      }, 1800);
+    }
+
+    function triggerComboEffect(text) {
+      const el = document.createElement("div");
+      el.className = "combo-text";
+      el.innerText = text;
+      el.style.left = "35%";
+      el.style.top = "45%";
+      document.querySelector(".game-body").appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }
+
+    // ==========================================
+    // MODE 1: MATCH-3 PUZZLE ENGINE
+    // ==========================================
+    function initGridBoard() {
+      const gridEl = document.getElementById("grid-board");
+      gridEl.innerHTML = "";
+      board = [];
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        board[r] = [];
+        for (let c = 0; c < GRID_SIZE; c++) {
+          let piece = getRandomPiece();
+          // avoid immediate match-3 on spawn
+          while (
+            (c >= 2 && board[r][c-1] === piece && board[r][c-2] === piece) ||
+            (r >= 2 && board[r-1][c] === piece && board[r-2][c] === piece)
+          ) {
+            piece = getRandomPiece();
+          }
+          board[r][c] = piece;
+
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          cell.innerText = piece;
+          cell.onclick = () => handleCellClick(r, c);
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function getRandomPiece() {
+      return PIECES[Math.floor(Math.random() * PIECES.length)];
+    }
+
+    function renderBoard() {
+      const gridEl = document.getElementById("grid-board");
+      let idx = 0;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const cell = gridEl.children[idx++];
+          cell.innerText = board[r][c];
+          cell.classList.remove("selected");
+        }
+      }
+    }
+
+    function handleCellClick(r, c) {
+      if (isProcessing) return;
+
+      if (!selectedCell) {
+        selectedCell = { r, c };
+        getCellEl(r, c).classList.add("selected");
+      } else {
+        let r1 = selectedCell.r, c1 = selectedCell.c;
+        let isAdjacent = Math.abs(r1 - r) + Math.abs(c1 - c) === 1;
+
+        getCellEl(r1, c1).classList.remove("selected");
+
+        if (isAdjacent) {
+          swapAndCheck(r1, c1, r, c);
+        } else {
+          selectedCell = { r, c };
+          getCellEl(r, c).classList.add("selected");
+        }
+      }
+    }
+
+    function getCellEl(r, c) {
+      return document.getElementById("grid-board").children[r * GRID_SIZE + c];
+    }
+
+    async function swapAndCheck(r1, c1, r2, c2) {
+      isProcessing = true;
+      swap(r1, c1, r2, c2);
+      renderBoard();
+
+      let matches = findMatches();
+      if (matches.length > 0) {
+        await processMatches(matches);
+      } else {
+        // Swap back if no match
+        swap(r1, c1, r2, c2);
+        renderBoard();
+      }
+      selectedCell = null;
+      isProcessing = false;
+    }
+
+    function swap(r1, c1, r2, c2) {
+      let temp = board[r1][c1];
+      board[r1][c1] = board[r2][c2];
+      board[r2][c2] = temp;
+    }
+
+    function findMatches() {
+      let matched = new Set();
+
+      // Horizontal
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE - 2; c++) {
+          let p = board[r][c];
+          if (p && p === board[r][c+1] && p === board[r][c+2]) {
+            matched.add(`${r},${c}`);
+            matched.add(`${r},${c+1}`);
+            matched.add(`${r},${c+2}`);
+          }
+        }
+      }
+
+      // Vertical
+      for (let c = 0; c < GRID_SIZE; c++) {
+        for (let r = 0; r < GRID_SIZE - 2; r++) {
+          let p = board[r][c];
+          if (p && p === board[r+1][c] && p === board[r+2][c]) {
+            matched.add(`${r},${c}`);
+            matched.add(`${r+1},${c}`);
+            matched.add(`${r+2},${c}`);
+          }
+        }
+      }
+
+      return Array.from(matched).map(s => {
+        let [r, c] = s.split(",").map(Number);
+        return { r, c, type: board[r][c] };
+      });
+    }
+
+    async function processMatches(matches, comboCount = 1) {
+      let flowers = 0;
+      let leaves = 0;
+
+      matches.forEach(m => {
+        if (m.type === "🌸") flowers++;
+        if (m.type === "🍃") leaves++;
+        board[m.r][m.c] = null;
+      });
+
+      // Handle rewards / penalties
+      if (flowers > 0) {
+        score += flowers * 5 * comboCount;
+        let trait = POSITIVE_TRAITS[Math.floor(Math.random() * POSITIVE_TRAITS.length)];
+        collectedPositives.add(trait);
+        showTraitMessage(trait, true);
+      }
+
+      if (leaves > 0) {
+        let trait = NEGATIVE_TRAITS[Math.floor(Math.random() * NEGATIVE_TRAITS.length)];
+        showTraitMessage(trait, false);
+      }
+
+      if (comboCount > 1) {
+        triggerComboEffect("COMBO x" + comboCount + "!");
+      }
+
+      updateUI();
+      renderBoard();
+
+      await delay(250);
+      dropPieces();
+      renderBoard();
+
+      await delay(250);
+      let newMatches = findMatches();
+      if (newMatches.length > 0) {
+        await processMatches(newMatches, comboCount + 1);
+      }
+    }
+
+    function dropPieces() {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        let emptyRow = GRID_SIZE - 1;
+        for (let r = GRID_SIZE - 1; r >= 0; r--) {
+          if (board[r][c] !== null) {
+            board[emptyRow][c] = board[r][c];
+            if (emptyRow !== r) board[r][c] = null;
+            emptyRow--;
+          }
+        }
+        for (let r = emptyRow; r >= 0; r--) {
+          board[r][c] = getRandomPiece();
+        }
+      }
+    }
+
+    // ==========================================
+    // MODE 2: BOWL GAME ENGINE
+    // ==========================================
+    function initBowlMode() {
+      const container = document.getElementById("bowl-container");
+      container.innerHTML = "";
+      
+      // Spawn items periodically
+      spawnBowlItem();
+      bowlInterval = setInterval(() => {
+        if (container.children.length < 5) {
+          spawnBowlItem();
+        }
+      }, 1200);
+    }
+
+    function spawnBowlItem() {
+      const container = document.getElementById("bowl-container");
+      if (!container) return;
+
+      const isPositive = Math.random() > 0.4;
+      const traitList = isPositive ? POSITIVE_TRAITS : NEGATIVE_TRAITS;
+      const traitText = traitList[Math.floor(Math.random() * traitList.length)];
+
+      const card = document.createElement("div");
+      card.className = `floating-card ${isPositive ? 'pos' : 'neg'}`;
+      card.innerText = (isPositive ? "🌸 " : "🍃 ") + traitText;
+
+      // Random position inside bowl
+      const x = Math.random() * 150 + 10;
+      const y = Math.random() * 160 + 60;
+      card.style.left = x + "px";
+      card.style.top = y + "px";
+      card.style.animationDuration = (2.5 + Math.random() * 2) + "s";
+
+      card.onclick = () => {
+        if (isPositive) {
+          score += 10;
+          collectedPositives.add(traitText);
+          showTraitMessage(traitText, true);
+        } else {
+          lives--;
+          showTraitMessage(traitText, false);
+        }
+        card.remove();
+        updateUI();
+      };
+
+      container.appendChild(card);
+
+      // Auto disappear after 4 seconds
+      setTimeout(() => {
+        if (card.parentNode) card.remove();
+      }, 4000);
+    }
+
+    // ==========================================
+    // END GAME & HELPERS
+    // ==========================================
+    function showEndGame(isWin) {
+      clearInterval(bowlInterval);
+      const overlay = document.getElementById("end-overlay");
+      const title = document.getElementById("end-title");
+      const list = document.getElementById("collected-list");
+
+      if (isWin) {
+        title.innerText = "ҚОЖАНЫҢ ЖАҚСЫ ҚАСИЕТТЕРІ ЖЕҢДІ! 🎉";
+        title.style.color = "#facc15";
+      } else {
+        title.innerText = "ОЙЫН АЯҚТАЛДЫ! 💔";
+        title.style.color = "#ef4444";
+      }
+
+      document.getElementById("final-score").innerText = score;
+      list.innerHTML = "";
+
+      if (collectedPositives.size === 0) {
+        list.innerHTML = `<span style="opacity:0.7;">Ешқандай қасиет жиналмады</span>`;
+      } else {
+        collectedPositives.forEach(trait => {
+          const item = document.createElement("span");
+          item.className = "collected-item";
+          item.innerText = "🌸 " + trait;
+          list.appendChild(item);
+        });
+      }
+
+      overlay.classList.add("active");
+    }
+
+    function resetGame() {
+      document.getElementById("end-overlay").classList.remove("active");
+      initGame();
+    }
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  </script>
+</body>
+</html>
